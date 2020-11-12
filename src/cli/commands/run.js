@@ -71,8 +71,27 @@ export function hasWrapper(commander: Object, args: Array<string>): boolean {
   return true;
 }
 
+function flatPkgScript(entry: Object, base: string = ''): Object {
+  if (!entry) {
+    return entry;
+  }
+  let next: Object = {};
+  if (typeof entry === 'object') {
+    for (const [key, script] of Object.entries(entry)) {
+      const parsedKey = base ? `${base}.${key}` : key;
+      if (typeof script === 'string') {
+        next[parsedKey] = script;
+      } else {
+        next = Object.assign(next, flatPkgScript(script, parsedKey));
+      }
+    }
+  }
+  return next;
+}
+
 export async function run(config: Config, reporter: Reporter, flags: Object, args: Array<string>): Promise<void> {
   const pkg = await config.readManifest(config.cwd);
+  pkg.scripts = flatPkgScript(pkg.scripts);
 
   const binCommands = new Set();
   const pkgCommands = new Set();
@@ -87,7 +106,9 @@ export async function run(config: Config, reporter: Reporter, flags: Object, arg
   const pkgScripts = pkg.scripts;
 
   if (pkgScripts) {
-    for (const name of Object.keys(pkgScripts).sort()) {
+    const keys = Object.keys(pkgScripts).sort();
+    for (const name of keys) {
+
       scripts.set(name, pkgScripts[name] || '');
       pkgCommands.add(name);
     }

@@ -109,6 +109,7 @@
   },
   "repository": "yarnpkg/yarn",
   "bin": {
+    "batata": "./bin/yarn.js",
     "yarn": "./bin/yarn.js",
     "yarnpkg": "./bin/yarn.js"
   },
